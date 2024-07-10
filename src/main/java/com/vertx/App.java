@@ -14,37 +14,34 @@ public class App {
 
         Router router = Router.router(vertx);
 
-        router
-                .route("/hello")
+//        router.route("/hello").handler(App::handleRequest);
+
+        Route handler1 = router
+                .get("/hello")
                 .handler(routingContext -> {
-                    System.out.println("came to hello:");
+                    System.out.println("came to hello: get" );
                     HttpServerResponse response = routingContext.response();
                     response.setChunked(true);
                     response.write("Hi ");
-                    routingContext
-                            .vertx()
-                            .setTimer(5000, tid -> routingContext.next());
-                });
-
-        router
-                .route("/hello")
-                .handler(routingContext -> {
-                    System.out.println("came to hello 2:");
-                    HttpServerResponse response = routingContext.response();
-                    response.write("Hi 2");
-                    routingContext
-                            .vertx()
-                            .setTimer(5000, tid -> routingContext.next());
-                });
-
-        router
-                .route("/hello")
-                .handler(routingContext -> {
-                    System.out.println("came to hello 3:");
-                    HttpServerResponse response = routingContext.response();
-                    response.write("Hi 3");
                     response.end();
+
                 });
+
+        Route handler2 = router
+                .post("/hello")
+                .handler(routingContext -> {
+                    System.out.println("came to hello: post" );
+                    HttpServerResponse response = routingContext.response();
+                    response.setChunked(true);
+                    response.write("Hi from post");
+                    response.end();
+
+                });
+
+
+
+
+
 
         httpServer
                 .requestHandler(router)
