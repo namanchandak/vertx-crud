@@ -17,12 +17,13 @@ public class App {
 //        router.route("/hello").handler(App::handleRequest);
 
         Route handler1 = router
-                .get("/hello")
+                .get("/hello/:name")
                 .handler(routingContext -> {
-                    System.out.println("came to hello: get" );
+                    String name = routingContext.request().getParam("name");
+                    System.out.println("came to hello: get"+name );
                     HttpServerResponse response = routingContext.response();
                     response.setChunked(true);
-                    response.write("Hi ");
+                    response.write("Hi "+name);
                     response.end();
 
                 });
