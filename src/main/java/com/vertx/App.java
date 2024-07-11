@@ -44,6 +44,8 @@ public class App {
             router.post("/users").handler(this::handlePostResource);
 
             router.delete("/users/:username").handler(this::handleDeleteByIdResource);
+            router.put("/users/:username").handler(this::handleUpdateResource);
+
 
             // Start the HTTP server
             vertx.createHttpServer()
@@ -162,6 +164,61 @@ public class App {
                 }
             });
         }
+
+        private void handleUpdateResource(RoutingContext ctx) {
+            JsonObject body = ctx.getBodyAsJson();
+
+            // Logging to inspect the JSON body
+            System.out.println("Received JSON body: " + body.encodePrettily());
+
+            // Extract the username from the URL parameter
+            String username = ctx.request().getParam("username");
+
+            // Initialize the SQL update query
+            StringBuilder sql = new StringBuilder("UPDATE userT SET ");
+            JsonArray params = new JsonArray();
+            boolean first = true;
+
+            // Dynamically add fields to be updated
+            if (body.containsKey("email")) {
+                if (!first) sql.append(", ");
+                sql.append("email = ?");
+                params.add(body.getString("email"));
+                first = false;
+            }
+
+            // Add more fields as necessary in a similar manner
+            // Example:
+
+            // Ensure at least one field is being updated
+            if (params.isEmpty()) {
+                ctx.response().setStatusCode(400).end("No fields to update");
+                return;
+            }
+
+            // Append the WHERE clause
+            sql.append(" WHERE username = ?");
+            params.add(username);
+
+            System.out.println(sql);
+
+            // Execute the SQL update query
+            client.updateWithParams(sql.toString(), params, res -> {
+                if (res.succeeded()) {
+                    if (res.result().getUpdated() == 0) {
+                        // Handle case where no user is found with the given username
+                        ctx.response().setStatusCode(404).end("User not found");
+                    } else {
+                        ctx.response().setStatusCode(200).end("User updated successfully");
+                    }
+                } else {
+                    ctx.fail(500);
+                }
+            });
+        }
+
+
+
 
 
         @Override
