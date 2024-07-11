@@ -123,7 +123,7 @@ public class App {
             client.updateWithParams(sql, params, res -> {
                 if (res.succeeded()) {
                     if (res.result().getUpdated() > 0) {
-                        ctx.response().setStatusCode(204).end();
+                        ctx.response().setStatusCode(200).end("User deleted successfully");
                     } else {
                         ctx.response().setStatusCode(404).end("User not found");
                     }
@@ -158,7 +158,7 @@ public class App {
             // Execute the SQL INSERT query
             client.updateWithParams("INSERT INTO userT (username, email) VALUES (?, ?)", params, res -> {
                 if (res.succeeded()) {
-                    ctx.response().setStatusCode(201).end();
+                    ctx.response().setStatusCode(201).end("Username created ");
                 } else {
                     ctx.fail(500);
                 }
