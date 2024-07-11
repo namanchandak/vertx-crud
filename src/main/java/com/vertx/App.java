@@ -39,9 +39,13 @@ public class App {
 
             // Define GET endpoint
             router.get("/users").handler(this::handleGetResource);
-
+            router.get("/users/:username").handler(this::handleGetByIdResource);
             // Define POST endpoint
             router.post("/users").handler(this::handlePostResource);
+
+            router.delete("/users/:username").handler(this::handleDeleteByIdResource);
+            router.put("/users/:username").handler(this::handleUpdateResource);
+
 
             // Start the HTTP server
             vertx.createHttpServer()
@@ -65,6 +69,66 @@ public class App {
                             .putHeader("content-type", "application/json")
                             .end(res.result().toJson().encode());
                 } else {
+                    ctx.fail(500);
+                }
+            });
+        }
+
+
+
+        private void handleGetByIdResource(RoutingContext ctx) {
+            String username = ctx.request().getParam("username");
+
+            // Check if username parameter is provided
+
+
+            // Prepare SQL query with parameter
+            String sql = "SELECT * FROM userT WHERE username = ?";
+            JsonArray params = new JsonArray().add(username);
+
+            // Execute the SQL query
+            client.queryWithParams(sql, params, res -> {
+                if (res.succeeded()) {
+                    // Retrieve the query result
+                    if (res.result().getNumRows() > 0) {
+                        JsonObject user = res.result().getRows().get(0);
+                        ctx.response()
+                                .putHeader("content-type", "application/json")
+                                .end(user.encode());
+                    } else {
+                        // Handle case where no user is found with the given username
+                        ctx.response().setStatusCode(404).end("User not found");
+                    }
+                } else {
+                    // Handle query execution failure
+                    ctx.fail(500);
+                }
+            });
+        }
+
+        private void handleDeleteByIdResource(RoutingContext ctx) {
+            String username = ctx.request().getParam("username");
+
+            // Check if username parameter is provided
+            if (username == null || username.isEmpty()) {
+                ctx.response().setStatusCode(400).end("Username parameter is required");
+                return;
+            }
+
+            // Prepare SQL query with parameter
+            String sql = "DELETE FROM userT WHERE username = ?";
+            JsonArray params = new JsonArray().add(username);
+
+            // Execute the SQL DELETE query
+            client.updateWithParams(sql, params, res -> {
+                if (res.succeeded()) {
+                    if (res.result().getUpdated() > 0) {
+                        ctx.response().setStatusCode(200).end("User deleted successfully");
+                    } else {
+                        ctx.response().setStatusCode(404).end("User not found");
+                    }
+                } else {
+                    // Handle query execution failure
                     ctx.fail(500);
                 }
             });
@@ -94,12 +158,67 @@ public class App {
             // Execute the SQL INSERT query
             client.updateWithParams("INSERT INTO userT (username, email) VALUES (?, ?)", params, res -> {
                 if (res.succeeded()) {
-                    ctx.response().setStatusCode(201).end();
+                    ctx.response().setStatusCode(201).end("Username created ");
                 } else {
                     ctx.fail(500);
                 }
             });
         }
+
+        private void handleUpdateResource(RoutingContext ctx) {
+            JsonObject body = ctx.getBodyAsJson();
+
+            // Logging to inspect the JSON body
+            System.out.println("Received JSON body: " + body.encodePrettily());
+
+            // Extract the username from the URL parameter
+            String username = ctx.request().getParam("username");
+
+            // Initialize the SQL update query
+            StringBuilder sql = new StringBuilder("UPDATE userT SET ");
+            JsonArray params = new JsonArray();
+            boolean first = true;
+
+            // Dynamically add fields to be updated
+            if (body.containsKey("email")) {
+                if (!first) sql.append(", ");
+                sql.append("email = ?");
+                params.add(body.getString("email"));
+                first = false;
+            }
+
+            // Add more fields as necessary in a similar manner
+            // Example:
+
+            // Ensure at least one field is being updated
+            if (params.isEmpty()) {
+                ctx.response().setStatusCode(400).end("No fields to update");
+                return;
+            }
+
+            // Append the WHERE clause
+            sql.append(" WHERE username = ?");
+            params.add(username);
+
+            System.out.println(sql);
+
+            // Execute the SQL update query
+            client.updateWithParams(sql.toString(), params, res -> {
+                if (res.succeeded()) {
+                    if (res.result().getUpdated() == 0) {
+                        // Handle case where no user is found with the given username
+                        ctx.response().setStatusCode(404).end("User not found");
+                    } else {
+                        ctx.response().setStatusCode(200).end("User updated successfully");
+                    }
+                } else {
+                    ctx.fail(500);
+                }
+            });
+        }
+
+
+
 
 
         @Override
