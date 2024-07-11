@@ -39,9 +39,11 @@ public class App {
 
             // Define GET endpoint
             router.get("/users").handler(this::handleGetResource);
-
+            router.get("/users/:username").handler(this::handleGetByIdResource);
             // Define POST endpoint
             router.post("/users").handler(this::handlePostResource);
+
+            router.delete("/users/:username").handler(this::handleDeleteByIdResource);
 
             // Start the HTTP server
             vertx.createHttpServer()
@@ -65,6 +67,66 @@ public class App {
                             .putHeader("content-type", "application/json")
                             .end(res.result().toJson().encode());
                 } else {
+                    ctx.fail(500);
+                }
+            });
+        }
+
+
+
+        private void handleGetByIdResource(RoutingContext ctx) {
+            String username = ctx.request().getParam("username");
+
+            // Check if username parameter is provided
+
+
+            // Prepare SQL query with parameter
+            String sql = "SELECT * FROM userT WHERE username = ?";
+            JsonArray params = new JsonArray().add(username);
+
+            // Execute the SQL query
+            client.queryWithParams(sql, params, res -> {
+                if (res.succeeded()) {
+                    // Retrieve the query result
+                    if (res.result().getNumRows() > 0) {
+                        JsonObject user = res.result().getRows().get(0);
+                        ctx.response()
+                                .putHeader("content-type", "application/json")
+                                .end(user.encode());
+                    } else {
+                        // Handle case where no user is found with the given username
+                        ctx.response().setStatusCode(404).end("User not found");
+                    }
+                } else {
+                    // Handle query execution failure
+                    ctx.fail(500);
+                }
+            });
+        }
+
+        private void handleDeleteByIdResource(RoutingContext ctx) {
+            String username = ctx.request().getParam("username");
+
+            // Check if username parameter is provided
+            if (username == null || username.isEmpty()) {
+                ctx.response().setStatusCode(400).end("Username parameter is required");
+                return;
+            }
+
+            // Prepare SQL query with parameter
+            String sql = "DELETE FROM userT WHERE username = ?";
+            JsonArray params = new JsonArray().add(username);
+
+            // Execute the SQL DELETE query
+            client.updateWithParams(sql, params, res -> {
+                if (res.succeeded()) {
+                    if (res.result().getUpdated() > 0) {
+                        ctx.response().setStatusCode(204).end();
+                    } else {
+                        ctx.response().setStatusCode(404).end("User not found");
+                    }
+                } else {
+                    // Handle query execution failure
                     ctx.fail(500);
                 }
             });
