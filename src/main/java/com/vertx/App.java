@@ -8,6 +8,11 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.KeyStoreOptions;
+import io.vertx.ext.auth.PubSecKeyOptions;
+import io.vertx.ext.auth.authentication.AuthenticationProvider;
+import io.vertx.ext.auth.jwt.JWTAuth;
+import io.vertx.ext.auth.jwt.JWTAuthOptions;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -62,7 +67,19 @@ public class App extends AbstractVerticle {
             String itemId = ctx.pathParam("id");
             Item item = database.find(Item.class, Long.parseLong(itemId));
             if (item != null) {
-                ctx.json(item);
+//                ctx.json(item);
+
+
+                JWTAuth provider = JWTAuth.create(vertx, new JWTAuthOptions()
+                        .addPubSecKey(new PubSecKeyOptions()
+                                .setAlgorithm("HS256")
+                                .setBuffer("keyboard cat")));
+
+                String token = provider.generateToken(new JsonObject());
+
+                ctx.json(item+" token is "+ token);
+
+
             } else {
                 ctx.response().setStatusCode(404).end("Item not found");
             }
