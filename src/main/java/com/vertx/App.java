@@ -8,6 +8,7 @@ import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
+import io.vertx.ext.auth.JWTOptions;
 import io.vertx.ext.auth.KeyStoreOptions;
 import io.vertx.ext.auth.PubSecKeyOptions;
 import io.vertx.ext.auth.authentication.AuthenticationProvider;
@@ -78,14 +79,8 @@ public class App extends AbstractVerticle {
 //                ctx.json(item);
 
 
-                JWTAuth provider = JWTAuth.create(vertx, new JWTAuthOptions()
-                        .addPubSecKey(new PubSecKeyOptions()
-                                .setAlgorithm("HS256")
-                                .setBuffer("keyboard cat")));
 
-                String token = provider.generateToken(new JsonObject());
-
-                ctx.json(item+" token is "+ token);
+                ctx.json(item);
 
 
             } else {
@@ -119,6 +114,39 @@ public class App extends AbstractVerticle {
                 ctx.response().setStatusCode(404).end("Item not found");
             }
         });
+
+
+        //login
+
+        router.get("/api/login").handler(ctx -> {
+            JsonObject requestBody = ctx.getBodyAsJson();
+            String id = requestBody.getString("id");
+            String pass = requestBody.getString("pass");
+
+            Item item = database.find(Item.class, Long.parseLong(id));
+            System.out.println(item.getName()+ " " + pass);
+
+
+            if (item != null  && item.getPass() != null && item.getPass().equals(pass)) {
+
+                JWTAuthOptions jwtAuthOptions = new JWTAuthOptions()
+                        .addPubSecKey(new PubSecKeyOptions()
+                                .setAlgorithm("HS256")
+                                .setBuffer("keyboard cat"));
+                JWTAuth provider = JWTAuth.create(vertx, jwtAuthOptions);
+
+                JsonObject claims = new JsonObject().put("sub", id);
+                JWTOptions options = new JWTOptions().setExpiresInMinutes(30);
+
+                String token = provider.generateToken(claims, options);
+                ctx.response().setStatusCode(200).end(token);
+            } else {
+                ctx.response().setStatusCode(401).end("Invalid credentials");
+            }
+
+
+        });
+
 
 
 
