@@ -1,58 +1,59 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 
+  <modelVersion>4.0.0</modelVersion>
   <groupId>com.vertx</groupId>
   <artifactId>vertx</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
-
   <name>vertx</name>
   <url>http://maven.apache.org</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <maven.compiler.source>11</maven.compiler.source>
+    <maven.compiler.target>11</maven.compiler.target>
   </properties>
 
   <dependencies>
-
-    <!-- https://mvnrepository.com/artifact/io.vertx/vertx-core -->
+    <!-- Vert.x Core and Web dependencies -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-core</artifactId>
       <version>4.5.8</version>
     </dependency>
-
-
-
-
-    <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web</artifactId>
       <version>4.5.8</version>
     </dependency>
-    <!-- https://mvnrepository.com/artifact/io.vertx/vertx-web-client -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-web-client</artifactId>
       <version>4.5.8</version>
     </dependency>
 
-
+    <!-- Vert.x SQL and MySQL Client -->
     <dependency>
       <groupId>io.vertx</groupId>
       <artifactId>vertx-sql-client</artifactId>
       <version>4.5.8</version>
     </dependency>
 
-    <!-- Vert.x MySQL Client -->
     <dependency>
+      <groupId>jakarta.persistence</groupId>
+      <artifactId>jakarta.persistence-api</artifactId>
+      <version>3.1.0</version> <!-- Replace with your version -->
+    </dependency>
+
+
+    <dependency>
+
       <groupId>io.vertx</groupId>
       <artifactId>vertx-mysql-client</artifactId>
       <version>4.5.8</version>
     </dependency>
-
 
     <!-- MySQL Connector Java -->
     <dependency>
@@ -61,30 +62,53 @@
       <version>8.0.33</version>
     </dependency>
 
+    <!-- Ebean dependencies -->
     <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.2.11</version>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean</artifactId>
+      <version>14.1.0</version>
     </dependency>
-
-
-    <!-- Vert.x SQL Client -->
-
-
-    <!-- Vert.x JDBC Client -->
     <dependency>
-      <groupId>io.vertx</groupId>
-      <artifactId>vertx-jdbc-client</artifactId>
-      <version>4.5.8</version>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean-querybean</artifactId>
+      <version>14.1.0</version>
     </dependency>
-
-    <!-- MySQL JDBC Driver -->
     <dependency>
-      <groupId>mysql</groupId>
-      <artifactId>mysql-connector-java</artifactId>
-      <version>8.0.28</version>
+      <groupId>io.ebean</groupId>
+      <artifactId>ebean-migration</artifactId>
+      <version>14.1.0</version>
     </dependency>
-
-
   </dependencies>
+
+  <build>
+    <plugins>
+      <!-- Ebean Maven Plugin -->
+      <plugin>
+        <groupId>io.ebean</groupId>
+        <artifactId>ebean-maven-plugin</artifactId>
+        <version>14.1.0</version>
+        <executions>
+          <execution>
+            <id>main</id>
+            <phase>process-classes</phase>
+            <configuration>
+              <packages>com.vertx.*</packages> <!-- Adjust package as per your entity class location -->
+            </configuration>
+            <goals>
+              <goal>enhance</goal>
+            </goals>
+          </execution>
+        </executions>
+        <dependencies>
+          <!-- Ensure the Ebean Enhancer is available -->
+          <dependency>
+            <groupId>io.ebean</groupId>
+            <artifactId>ebean-agent</artifactId>
+            <version>14.1.0</version>
+          </dependency>
+        </dependencies>
+      </plugin>
+    </plugins>
+  </build>
+
 </project>
