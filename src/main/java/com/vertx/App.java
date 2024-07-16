@@ -69,6 +69,36 @@ public class App extends AbstractVerticle {
         });
 
 
+        router.delete("/api/items/:id").handler(ctx -> {
+            String itemId = ctx.pathParam("id");
+            Item item = database.find(Item.class, Long.parseLong(itemId));
+            if (item != null) {
+                database.delete(item);
+                ctx.response().setStatusCode(204).end("Item deleted");
+            } else {
+                ctx.response().setStatusCode(404).end("Item not found");
+            }
+        });
+
+
+        router.put("/api/items/:id").handler(ctx -> {
+            String itemId = ctx.pathParam("id");
+            Item existingItem = database.find(Item.class, Long.parseLong(itemId));
+            if (existingItem != null) {
+                JsonObject requestBody = ctx.getBodyAsJson();
+                String newName = requestBody.getString("name");
+                existingItem.setName(newName);
+                database.update(existingItem);
+                ctx.json(existingItem);
+            } else {
+                ctx.response().setStatusCode(404).end("Item not found");
+            }
+        });
+
+
+
+
+
         // Start the HTTP server
         vertx.createHttpServer()
                 .requestHandler(router)
