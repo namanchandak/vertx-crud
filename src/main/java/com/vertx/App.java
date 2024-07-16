@@ -52,14 +52,22 @@ public class App extends AbstractVerticle {
         router.post("/api/items").handler(ctx -> {
             // Extract the 'name' from the request body
             JsonObject requestBody = ctx.getBodyAsJson();
-            String itemName = requestBody.getString("name");
+            String name = requestBody.getString("name");
+            String pass = requestBody.getString("pass");
 
             // Create a new Item object and save it to the database
-            Item newItem = new Item(itemName);
-            database.save(newItem);
+            Item newItem = new Item();
+            newItem.setName(name);
+            newItem.setPass(pass);
 
-            // Return a success message or the created item
-            ctx.json(newItem);
+            // Save the item to the database using Ebean
+            try {
+                database.save(newItem);
+                ctx.response().setStatusCode(201).end("Item saved successfully");
+            } catch (Exception e) {
+                ctx.response().setStatusCode(500).end("Failed to save item: " + e.getMessage());
+                e.printStackTrace();  // Log the exception for debugging purposes
+            }
         });
 
 
@@ -144,9 +152,11 @@ public class App extends AbstractVerticle {
         @Id
         private Long id;
         private String name;
+        private String pass;
 
-        public Item(String name) {
+        public Item(String name, String pass) {
             this.name = name;
+            this.pass = pass;
         }
 
         public Item() {
@@ -169,6 +179,15 @@ public class App extends AbstractVerticle {
         public void setName(String name) {
             this.name = name;
         }
+
+        public String getPass() {
+            return pass;
+        }
+
+        public void setPass(String pass) {
+            this.pass = pass;
+        }
+
     }
 
 }
