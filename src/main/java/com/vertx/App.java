@@ -57,6 +57,18 @@ public class App extends AbstractVerticle {
             ctx.json(newItem);
         });
 
+
+        router.get("/api/items/:id").handler(ctx -> {
+            String itemId = ctx.pathParam("id");
+            Item item = database.find(Item.class, Long.parseLong(itemId));
+            if (item != null) {
+                ctx.json(item);
+            } else {
+                ctx.response().setStatusCode(404).end("Item not found");
+            }
+        });
+
+
         // Start the HTTP server
         vertx.createHttpServer()
                 .requestHandler(router)
