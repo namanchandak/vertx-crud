@@ -7,6 +7,7 @@ import io.ebean.datasource.DataSourceConfig;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.Vertx;
+import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.Router;
 import io.vertx.ext.web.handler.BodyHandler;
 
@@ -42,6 +43,20 @@ public class App extends AbstractVerticle {
             ctx.json(items);
         });
 
+
+        router.post("/api/items").handler(ctx -> {
+            // Extract the 'name' from the request body
+            JsonObject requestBody = ctx.getBodyAsJson();
+            String itemName = requestBody.getString("name");
+
+            // Create a new Item object and save it to the database
+            Item newItem = new Item(itemName);
+            database.save(newItem);
+
+            // Return a success message or the created item
+            ctx.json(newItem);
+        });
+
         // Start the HTTP server
         vertx.createHttpServer()
                 .requestHandler(router)
@@ -71,6 +86,14 @@ public class App extends AbstractVerticle {
         private Long id;
         private String name;
 
+        public Item(String name) {
+            this.name = name;
+        }
+
+        public Item() {
+
+        }
+
         // Getters and Setters
         public Long getId() {
             return id;
@@ -88,4 +111,5 @@ public class App extends AbstractVerticle {
             this.name = name;
         }
     }
+
 }
