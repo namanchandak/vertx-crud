@@ -32,9 +32,13 @@ public class App extends AbstractVerticle {
 
     @Override
     public void start(Promise<Void> startPromise) {
+
+        dbconfig dbConfig = new dbconfig();
+        DataSourceConfig dsConfig = dbConfig.createDataSourceConfig();
+
         // Configure Ebean programmatically
         DatabaseConfig config = new DatabaseConfig();
-        config.setDataSourceConfig(createDataSourceConfig());
+        config.setDataSourceConfig(dbConfig.createDataSourceConfig());
         config.setDdlGenerate(true);
         config.setDdlRun(true);
         database = DatabaseFactory.create(config);
@@ -108,7 +112,9 @@ public class App extends AbstractVerticle {
                 JsonObject requestBody = ctx.getBodyAsJson();
                 String newName = requestBody.getString("name");
                 existingItem.setName(newName);
+
                 database.update(existingItem);
+
                 ctx.json(existingItem);
             } else {
                 ctx.response().setStatusCode(404).end("Item not found");
@@ -166,56 +172,7 @@ public class App extends AbstractVerticle {
                 });
     }
 
-    private DataSourceConfig createDataSourceConfig() {
-        DataSourceConfig dsConfig = new DataSourceConfig();
-        dsConfig.setUsername("root");
-        dsConfig.setPassword("root");
-        dsConfig.setUrl("jdbc:mysql://localhost:3306/testdb");
-        dsConfig.setDriver("com.mysql.cj.jdbc.Driver");
-        return dsConfig;
-    }
 
-    @Entity
-    public static class Item {
-        @Id
-        private Long id;
-        private String name;
-        private String pass;
 
-        public Item(String name, String pass) {
-            this.name = name;
-            this.pass = pass;
-        }
-
-        public Item() {
-
-        }
-
-        // Getters and Setters
-        public Long getId() {
-            return id;
-        }
-
-        public void setId(Long id) {
-            this.id = id;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
-        }
-
-        public String getPass() {
-            return pass;
-        }
-
-        public void setPass(String pass) {
-            this.pass = pass;
-        }
-
-    }
 
 }
