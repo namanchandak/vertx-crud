@@ -1,5 +1,8 @@
 package com.vertx;
 
+import com.vertx.controller.PostController;
+import com.vertx.service.PostService;
+import com.vertx.service.impl.PostServiceImpl;
 import io.ebean.Database;
 import io.ebean.DatabaseFactory;
 import io.ebean.config.DatabaseConfig;
@@ -43,9 +46,16 @@ public class App extends AbstractVerticle {
         config.setDdlRun(true);
         database = DatabaseFactory.create(config);
 
+        PostService postService = new PostServiceImpl(vertx);
+
+        // Create the PostController and pass the PostService
+        PostController postController = new PostController(postService);
+
+
         // Create a Router
         Router router = Router.router(vertx);
         router.route().handler(BodyHandler.create());
+        postController.setupRoutes(router);
 
         // Define the GET endpoint
         router.get("/api/items").handler(ctx -> {
