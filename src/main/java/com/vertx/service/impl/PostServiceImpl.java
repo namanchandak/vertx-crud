@@ -35,4 +35,17 @@ public class PostServiceImpl implements PostService {
             }
         });
     }
+
+    @Override
+    public Future<Post> fetchPostById(int id) {
+        return webClient.get("/posts/" + id).send().map(response -> {
+            if (response.statusCode() == 200) {
+                return Json.decodeValue(response.bodyAsJsonObject().toString(), Post.class);
+            } else if (response.statusCode() == 404) {
+                throw new RuntimeException("Post not found, status code: " + response.statusCode());
+            } else {
+                throw new RuntimeException("Failed to fetch post, status code: " + response.statusCode());
+            }
+        });
+    }
 }

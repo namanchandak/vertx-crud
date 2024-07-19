@@ -10,4 +10,5 @@ public interface PostApi {
 
     @GET("/posts")
     public Call<List<Post>> fetchPosts();
+
 }

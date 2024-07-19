@@ -11,4 +11,5 @@ import java.util.List;
 public interface PostService {
 
     Future<List<Post>> fetchPosts();
+    Future<Post> fetchPostById(int id);
 }
